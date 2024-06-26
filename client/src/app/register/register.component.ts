@@ -1,6 +1,7 @@
 import { Component,  EventEmitter,  inject,  Input,  input, output, Output,  } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { AccountService } from '../_services/account.service';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-register',
@@ -17,7 +18,7 @@ export class RegisterComponent {
   // usersFromHome =input.required<any>()
   cancelRegister =output<boolean> ();
   private accountService =inject(AccountService);
-
+  private toastr = inject(ToastrService);
 
   register(){
     
@@ -26,9 +27,8 @@ export class RegisterComponent {
         console.log(res);
         this.cancel();
         },
-        error: err=>console.log(err),       
+        error: err=>this.toastr.error(err.error),       
         })
-      console.log(this.model);
   }
   cancel(){
     this.cancelRegister.emit(false);
