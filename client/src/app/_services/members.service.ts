@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { inject, Injectable, signal } from '@angular/core';
 import { Memeber } from '../models/Member';
 import { environment } from '../../environments/environment.development';
-import { of } from 'rxjs';
+import { of, tap } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -28,6 +28,11 @@ export class MembersService {
   }
 
   updateMember(member: Memeber){
-    return this.hhtp.put(this.baseUrl+'user', member);
+    return this.hhtp.put(this.baseUrl+'user', member).pipe(
+      tap(()=>{
+        this.members.update(members => members
+          .map(m => m.userName === member.userName ? member : m))
+      })
+    );
   }
 }
