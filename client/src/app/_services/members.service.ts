@@ -3,17 +3,18 @@ import { inject, Injectable, signal } from '@angular/core';
 import { Memeber } from '../models/Member';
 import { environment } from '../../environments/environment.development';
 import { of, tap } from 'rxjs';
+import { Photo } from '../models/Photo';
 
 @Injectable({
   providedIn: 'root'
 })
 export class MembersService {
-  private hhtp = inject(HttpClient);
+  private http = inject(HttpClient);
   baseUrl = environment.apiUrl;
   members = signal<Memeber[]>([]);
 
   getMembers(){
-    return this.hhtp.get<Memeber[]>(this.baseUrl+'user').subscribe({
+    return this.http.get<Memeber[]>(this.baseUrl+'user').subscribe({
       next: members => this.members.set(members)
     });
   }
@@ -24,14 +25,37 @@ export class MembersService {
       return of(member)
     }
     
-    return this.hhtp.get<Memeber>(this.baseUrl+'user/' + username);
+    return this.http.get<Memeber>(this.baseUrl+'user/' + username);
   }
 
   updateMember(member: Memeber){
-    return this.hhtp.put(this.baseUrl+'user', member).pipe(
+    return this.http.put(this.baseUrl+'user', member).pipe(
       tap(()=>{
         this.members.update(members => members
           .map(m => m.userName === member.userName ? member : m))
+      })
+    );
+  }
+  setMainPhoto(photo : Photo){
+    return this.http.put(this.baseUrl + 'user/set-main-photo/'+ photo.id , {} ).pipe(
+      tap(()=>{
+        this.members.update(members => members.map(m =>{
+          if (m.photos.includes(photo))
+            m.photoUrl = photo.url;
+          return m;
+        }))
+      })
+    )
+  }
+  deletePhoto(photo : Photo){
+    return this.http.delete(this.baseUrl + 'user/delete-photo/' + photo.id).pipe(
+      tap(()=>{
+        this.members.update(members => members.map(m=>{
+          if(m.photos.includes(photo)){
+            m.photos = m.photos.filter(x => x.id !== photo.id)
+          }
+          return m
+        }))
       })
     );
   }
